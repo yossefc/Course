@@ -2,7 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.services)
-    // Retiré temporairement : alias(libs.plugins.kotlin.kapt)
+    id("org.jetbrains.kotlin.kapt") // Utilisation de kapt comme plugin ici, pas via un alias
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -43,17 +44,16 @@ android {
     }
 }
 
-
 dependencies {
-    // Android Core Libraries
-    implementation(libs.material)
+    // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.activity.v182)
-    implementation(libs.androidx.activity.ktx.v182)
+
+    // Activity et Fragment (une seule version)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.fragment.ktx)
 
     // Firebase
     implementation(platform(libs.firebase.bom))
@@ -61,10 +61,10 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.messaging)
-    implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.fragment.ktx)
+
     // Google Sign-In
     implementation(libs.play.services.auth)
+
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
@@ -74,6 +74,16 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.livedata)
     implementation(libs.androidx.lifecycle.runtime)
+
+    // Room pour le stockage local
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion") // Support pour Kotlin
+    kapt("androidx.room:room-compiler:$roomVersion")
+
+    // Hilt pour l'injection de dépendances
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt(libs.hilt.compiler)
 
     // Testing
     testImplementation(libs.junit)

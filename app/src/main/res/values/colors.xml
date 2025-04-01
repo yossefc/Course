@@ -1,9 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Couleurs primaires -->
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
+    <color name="colorPrimaryLight">#BBDEFB</color>
     <color name="colorAccent">#FF4081</color>
+
+    <!-- Couleurs de l'interface -->
     <color name="colorBackground">#FFFFFF</color>
+    <color name="colorSurface">#FFFFFF</color>
     <color name="colorText">#212121</color>
     <color name="colorTextSecondary">#757575</color>
+    <color name="colorDivider">#BDBDBD</color>
+
+    <!-- Couleurs des statuts -->
+    <color name="colorSuccess">#4CAF50</color>
+    <color name="colorWarning">#FFC107</color>
+    <color name="colorError">#F44336</color>
+    <color name="colorInfo">#2196F3</color>
+
+    <!-- Couleurs pour les catégories -->
+    <color name="categoryDairy">#8BC34A</color>
+    <color name="categoryFruitsVegetables">#4CAF50</color>
+    <color name="categoryMeat">#F44336</color>
+    <color name="categoryFish">#03A9F4</color>
+    <color name="categoryBakery">#FF9800</color>
+    <color name="categoryFrozen">#00BCD4</color>
+    <color name="categoryDrinks">#9C27B0</color>
+    <color name="categoryCleaning">#607D8B</color>
+    <color name="categoryHygiene">#E91E63</color>
+    <color name="categoryOther">#9E9E9E</color>
 </resources>

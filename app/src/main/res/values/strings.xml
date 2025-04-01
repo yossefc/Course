@@ -2,16 +2,26 @@
 <resources>
     <string name="app_name">Courses Supermarché</string>
 
+    <!-- Écran de connexion -->
+    <string name="login_subtitle">Connectez-vous pour gérer vos listes de courses</string>
+    <string name="welcome_message">Bienvenue %1$s</string>
+    <string name="error_google_signin">La connexion avec Google a échoué: %1$d</string>
+    <string name="error_authentication">Échec de l\'authentification: %1$s</string>
+
     <!-- Écran principal -->
     <string name="empty_list_message">Votre liste de courses est vide</string>
     <string name="add_item">Ajouter un article</string>
     <string name="item_deleted">%1$s supprimé</string>
     <string name="undo">Annuler</string>
+    <string name="no_network">Vous êtes hors ligne. Les modifications seront synchronisées quand la connexion sera rétablie.</string>
+    <string name="sync_complete">Synchronisation terminée</string>
 
     <!-- Menu principal -->
     <string name="action_logout">Déconnexion</string>
     <string name="action_sort_by_category">Trier par catégorie</string>
     <string name="action_sort_by_name">Trier par nom</string>
+    <string name="action_clear_completed">Effacer les articles cochés</string>
+    <string name="action_share_list">Partager la liste</string>
 
     <!-- Écran d'ajout/édition -->
     <string name="add_new_item">Ajouter un article</string>
@@ -21,11 +31,12 @@
     <string name="category">Catégorie</string>
     <string name="quantity">Quantité</string>
     <string name="field_required">Ce champ est obligatoire</string>
+    <string name="item_added">Article ajouté avec succès</string>
+    <string name="item_updated">Article mis à jour avec succès</string>
 
     <!-- Notifications -->
     <string name="default_notification_channel_id">courses_supermarche_channel</string>
     <string name="default_notification_channel_name">Notifications liste de courses</string>
-
-    <!-- Ne pas modifier cette chaîne - elle est utilisée par Firebase -->
-    <string name="default_web_client_id">YOUR_WEB_CLIENT_ID</string>
+    <string name="notification_new_item">Nouvel article ajouté</string>
+    <string name="notification_item_updated">Article mis à jour</string>
 </resources>

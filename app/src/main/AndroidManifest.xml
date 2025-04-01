@@ -3,8 +3,10 @@
     package="com.example.coursessupermarche">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".CoursesSuperMarcheApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -13,8 +15,9 @@
         android:theme="@style/Theme.CoursesSupermarche">
 
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".ui.splash.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.CoursesSupermarche.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -22,12 +25,16 @@
         </activity>
 
         <activity
-            android:name=".AddItemActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
+            android:name=".ui.main.MainActivity"
+            android:exported="false" />
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".ui.additem.AddItemActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.main.MainActivity" />
+
+        <activity
+            android:name=".ui.auth.LoginActivity"
             android:exported="false" />
 
         <!-- Configuration FCM -->

@@ -1,14 +1,12 @@
 [versions]
-# Core dependencies versions - VERSIONS CORRIGÉES
-activity-ktx = "1.8.2"
-activity-ktx-version = "1.8.2"
-activity-version = "1.8.2"
+# Core dependencies versions
+activity = "1.8.2"
 core-ktx = "1.12.0"
 appcompat = "1.6.1"
 fragment-ktx = "1.6.2"
+hilt-compiler = "2.48"
 material = "1.11.0"
 constraintlayout = "2.1.4"
-activity = "1.8.2"
 
 # Firebase
 firebase-bom = "32.7.0"
@@ -32,12 +30,10 @@ play-services-auth = "20.7.0"
 
 [libraries]
 # AndroidX
-androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity-ktx" }
-androidx-activity-ktx-v182 = { module = "androidx.activity:activity-ktx", version.ref = "activity-ktx-version" }
-androidx-activity-v182 = { module = "androidx.activity:activity", version.ref = "activity-version" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment-ktx" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt-compiler" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
