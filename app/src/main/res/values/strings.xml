@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Courses Supermarché</string>
+
+    <!-- Écran principal -->
+    <string name="empty_list_message">Votre liste de courses est vide</string>
+    <string name="add_item">Ajouter un article</string>
+    <string name="item_deleted">%1$s supprimé</string>
+    <string name="undo">Annuler</string>
+
+    <!-- Menu principal -->
+    <string name="action_logout">Déconnexion</string>
+    <string name="action_sort_by_category">Trier par catégorie</string>
+    <string name="action_sort_by_name">Trier par nom</string>
+
+    <!-- Écran d'ajout/édition -->
+    <string name="add_new_item">Ajouter un article</string>
+    <string name="edit_item">Modifier l\'article</string>
+    <string name="update_item">Mettre à jour</string>
+    <string name="item_name">Nom de l\'article</string>
+    <string name="category">Catégorie</string>
+    <string name="quantity">Quantité</string>
+    <string name="field_required">Ce champ est obligatoire</string>
+
+    <!-- Notifications -->
+    <string name="default_notification_channel_id">courses_supermarche_channel</string>
+    <string name="default_notification_channel_name">Notifications liste de courses</string>
+
+    <!-- Ne pas modifier cette chaîne - elle est utilisée par Firebase -->
+    <string name="default_web_client_id">YOUR_WEB_CLIENT_ID</string>
+</resources>

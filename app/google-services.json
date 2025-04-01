@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "39354262123",
+    "project_id": "course-d8ca3",
+    "storage_bucket": "course-d8ca3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:39354262123:android:7fe1dd31e979427c9b872e",
+        "android_client_info": {
+          "package_name": "com.example.coursessupermarche"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "39354262123-89l8seo7ub0bg5015jhbhk8h38lbrm4c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.coursessupermarche",
+            "certificate_hash": "201dc2d74e19797578ee956dde1767325a61abb3"
+          }
+        },
+        {
+          "client_id": "39354262123-8r63010jtmhg5ao2dvc6ekqkvvjbkf60.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtJU49jTuh-PPPyR_u6t0pNdtXZrd_xxI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "39354262123-8r63010jtmhg5ao2dvc6ekqkvvjbkf60.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

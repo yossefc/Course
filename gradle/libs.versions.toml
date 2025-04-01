@@ -1,0 +1,71 @@
+[versions]
+# Core dependencies versions - VERSIONS CORRIGÉES
+activity-ktx = "1.8.2"
+activity-ktx-version = "1.8.2"
+activity-version = "1.8.2"
+core-ktx = "1.12.0"
+appcompat = "1.6.1"
+fragment-ktx = "1.6.2"
+material = "1.11.0"
+constraintlayout = "2.1.4"
+activity = "1.8.2"
+
+# Firebase
+firebase-bom = "32.7.0"
+
+# Coroutines
+coroutines = "1.7.3"
+
+# Lifecycle
+lifecycle = "2.6.2"
+
+# Testing
+junit = "4.13.2"
+androidx-junit = "1.1.5"
+espresso = "3.5.1"
+
+# Plugins
+android-application = "8.1.4"
+kotlin-android = "1.9.0"
+google-services = "4.4.0"
+play-services-auth = "20.7.0"
+
+[libraries]
+# AndroidX
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity-ktx" }
+androidx-activity-ktx-v182 = { module = "androidx.activity:activity-ktx", version.ref = "activity-ktx-version" }
+androidx-activity-v182 = { module = "androidx.activity:activity", version.ref = "activity-version" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment-ktx" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+
+# Firebase
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth-ktx" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
+
+# Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+
+# Lifecycle
+androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "android-application" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-android" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
