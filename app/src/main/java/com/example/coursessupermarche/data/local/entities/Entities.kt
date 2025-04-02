@@ -116,10 +116,3 @@ data class UserEntity(
     }
 }
 
-@Entity(tableName = "product_suggestions")
-data class ProductSuggestionEntity(
-    @PrimaryKey val id: String,
-    val userId: String,
-    val name: String,
-    val updatedAt: Date
-)

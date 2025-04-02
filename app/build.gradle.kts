@@ -31,30 +31,46 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 
     buildFeatures {
         viewBinding = true
     }
 }
+configurations.all {
+    resolutionStrategy {
+        // Utiliser une version spécifique de androidx.media3
+        // Versions 1.0.0, 1.1.0, 1.2.0 sont compatibles avec compileSdk 34
+        force("androidx.media3:media3-common:1.0.0")
 
+        // Le package media3-common-ktx peut ne pas être disponible en 1.0.0,
+        // mais si une dépendance le requiert, nous pouvons forcer la version la plus ancienne disponible
+        force("androidx.media3:media3-common-ktx:1.0.0-alpha03")
+
+        // Autres composants Media3 qui pourraient être utilisés
+        force("androidx.media3:media3-exoplayer:1.0.0")
+        force("androidx.media3:media3-ui:1.0.0")
+        force("androidx.media3:media3-session:1.0.0")
+        force("androidx.media3:media3-datasource:1.0.0")
+    }
+}
 dependencies {
     // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.constraintlayout)
+
 
     // Activity et Fragment (une seule version)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment.ktx)
-
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.common.ktx.v121)
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
@@ -69,20 +85,26 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.material.v1120)
 
+    configurations.all {
+        exclude(group = "androidx.media3", module = "media3-common-ktx")
+    }
     // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.livedata)
     implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.runtime.android)
+    implementation(libs.androidx.media3.common.ktx)
 
     // Room pour le stockage local
     val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion") // Support pour Kotlin
-    kapt("androidx.room:room-compiler:$roomVersion")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx) // Support pour Kotlin
+    kapt(libs.androidx.room.compiler)
 
     // Hilt pour l'injection de dépendances
-    implementation("com.google.dagger:hilt-android:2.48")
+    implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
     // Testing

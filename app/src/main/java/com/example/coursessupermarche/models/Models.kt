@@ -60,18 +60,9 @@ object Categories {
     }
 
     fun getCategoryIcon(category: String): Int {
-        return when (category) {
-            DAIRY -> R.drawable.ic_dairy
-            FRUITS_VEGETABLES -> R.drawable.ic_vegetables
-            MEAT -> R.drawable.ic_meat
-            FISH -> R.drawable.ic_fish
-            BAKERY -> R.drawable.ic_bakery
-            FROZEN -> R.drawable.ic_frozen
-            DRINKS -> R.drawable.ic_drinks
-            CLEANING -> R.drawable.ic_cleaning
-            HYGIENE -> R.drawable.ic_hygiene
-            else -> R.drawable.ic_other
-        }
+        // Utiliser ic_notification comme placeholder pour toutes les catégories
+        // jusqu'à ce que les icônes spécifiques soient créées
+        return R.drawable.ic_notification
     }
 }
 

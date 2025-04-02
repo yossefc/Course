@@ -1,22 +1,18 @@
-package com.example.coursessupermarche.ui.splash
+package com.example.coursessupermarche
 
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import androidx.activity.viewModels
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.coursessupermarche.R
 import com.example.coursessupermarche.databinding.ActivitySplashBinding
-import com.example.coursessupermarche.ui.auth.LoginActivity
-import com.example.coursessupermarche.ui.main.MainActivity
 import com.example.coursessupermarche.utils.NetworkMonitor
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @SuppressLint("CustomSplashScreen")
@@ -28,10 +24,14 @@ class SplashActivity : AppCompatActivity() {
     @Inject
     lateinit var auth: FirebaseAuth
 
+    private val TAG = "SplashActivity"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        Log.d(TAG, "SplashActivity created")
 
         // Initialiser le moniteur réseau
         NetworkMonitor.init(applicationContext)
@@ -51,25 +51,42 @@ class SplashActivity : AppCompatActivity() {
             }
             .start()
 
-        // Attendre un peu avant de naviguer
+        // Attendre un peu avant de naviguer, avec un timeout de sécurité
         lifecycleScope.launch {
             delay(1500)
-            navigateToNextScreen()
+            withTimeoutOrNull(3000) { // Timeout de 3 secondes maximum
+                try {
+                    navigateToNextScreen()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error navigating: ${e.message}")
+                    // En cas d'erreur, aller à LoginActivity
+                    startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
+                    finish()
+                }
+            } ?: run {
+                // Si timeout, aller à LoginActivity
+                Log.w(TAG, "Navigation timeout - going to login")
+                startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
+                finish()
+            }
         }
     }
 
     private fun navigateToNextScreen() {
+        Log.d(TAG, "Navigating to next screen")
         val currentUser = auth.currentUser
-        if (currentUser != null) {
-            // L'utilisateur est déjà connecté
-            startActivity(Intent(this, MainActivity::class.java))
+        val intent = if (currentUser != null) {
+            Log.d(TAG, "User already logged in, going to MainActivity")
+            Intent(this, MainActivity::class.java)
         } else {
-            // L'utilisateur doit se connecter
-            startActivity(Intent(this, LoginActivity::class.java))
+            Log.d(TAG, "User not logged in, going to LoginActivity")
+            Intent(this, LoginActivity::class.java)
         }
 
         // Animation de transition
+        startActivity(intent)
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
         finish()
+        Log.d(TAG, "Navigation complete")
     }
 }

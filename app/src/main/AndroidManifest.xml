@@ -15,7 +15,7 @@
         android:theme="@style/Theme.CoursesSupermarche">
 
         <activity
-            android:name=".ui.splash.SplashActivity"
+            android:name=".SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.CoursesSupermarche.Splash">
             <intent-filter>
@@ -25,16 +25,16 @@
         </activity>
 
         <activity
-            android:name=".ui.main.MainActivity"
+            android:name=".MainActivity"
             android:exported="false" />
 
         <activity
-            android:name=".ui.additem.AddItemActivity"
+            android:name=".AddItemActivity"
             android:exported="false"
-            android:parentActivityName=".ui.main.MainActivity" />
+            android:parentActivityName=".MainActivity" />
 
         <activity
-            android:name=".ui.auth.LoginActivity"
+            android:name=".LoginActivity"
             android:exported="false" />
 
         <!-- Configuration FCM -->
@@ -56,5 +56,10 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/colorAccent" />
     </application>
+
+    <!-- Ajout de cette métadonnée pour garantir que le fichier google-services.json est traité correctement -->
+    <meta-data
+        android:name="com.google.android.gms.version"
+        android:value="@integer/google_play_services_version" />
 
 </manifest>

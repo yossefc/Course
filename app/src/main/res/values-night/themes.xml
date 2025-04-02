@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Thème sombre pour l'application -->
-    <style name="Theme.CoursesSupermarche" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Thème sombre pour l'application - Migration vers Material 3 -->
+    <style name="Theme.CoursesSupermarche" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Couleurs primaires -->
         <item name="colorPrimary">@color/colorPrimaryLight</item>
         <item name="colorPrimaryDark">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="colorPrimaryVariant">@color/colorPrimary</item>
-        <item name="colorOnPrimary">@color/colorText</item>
+
+        <!-- Couleurs Material 3 -->
+        <item name="colorPrimaryContainer">@color/colorPrimary</item>
+        <item name="colorOnPrimaryContainer">@color/colorText</item>
 
         <!-- Couleurs secondaires -->
         <item name="colorSecondary">@color/colorAccent</item>
-        <item name="colorSecondaryVariant">@color/colorAccent</item>
+        <item name="colorSecondaryContainer">@color/colorAccent</item>
         <item name="colorOnSecondary">@android:color/white</item>
+        <item name="colorOnSecondaryContainer">@android:color/white</item>
 
         <!-- Couleurs de surface -->
         <item name="android:colorBackground">#121212</item>
@@ -23,7 +26,7 @@
         <item name="colorOnError">@android:color/white</item>
 
         <!-- Styles des composants Material Design -->
-        <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox</item>
+        <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.OutlinedBox</item>
         <item name="materialButtonStyle">@style/Widget.App.Button.Night</item>
         <item name="materialCardViewStyle">@style/Widget.App.CardView.Night</item>
 
@@ -41,7 +44,7 @@
     </style>
 
     <!-- Style pour les boutons en mode nuit -->
-    <style name="Widget.App.Button.Night" parent="Widget.MaterialComponents.Button">
+    <style name="Widget.App.Button.Night" parent="Widget.Material3.Button">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>
@@ -52,7 +55,7 @@
     </style>
 
     <!-- Style pour les cartes en mode nuit -->
-    <style name="Widget.App.CardView.Night" parent="Widget.MaterialComponents.CardView">
+    <style name="Widget.App.CardView.Night" parent="Widget.Material3.CardView.Elevated">
         <item name="cardElevation">4dp</item>
         <item name="cardCornerRadius">8dp</item>
         <item name="cardBackgroundColor">@color/colorSurface</item>

@@ -1,6 +1,7 @@
 package com.example.coursessupermarche.adapters
 
 import android.graphics.Paint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,6 +32,13 @@ class ShoppingItemAdapter(
         return getItem(position)
     }
 
+    // Méthode pour forcer une mise à jour de la liste
+    fun updateItems(items: List<ShoppingItem>) {
+        Log.d("ShoppingItemAdapter", "Mise à jour de la liste: ${items.size} éléments")
+        submitList(null)  // Vider la liste d'abord
+        submitList(items)  // Puis soumettre la nouvelle liste
+    }
+
     inner class ViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
 
@@ -56,6 +64,7 @@ class ShoppingItemAdapter(
         }
 
         fun bind(item: ShoppingItem) {
+            Log.d("ShoppingItemAdapter", "Binding item: ${item.name}")
             textViewItemName.text = item.name
             textViewCategory.text = item.category
             textViewQuantity.text = item.quantity.toString()

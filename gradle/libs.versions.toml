@@ -26,13 +26,25 @@ espresso = "3.5.1"
 android-application = "8.1.4"
 kotlin-android = "1.9.0"
 google-services = "4.4.0"
+materialVersion = "1.12.0"
+media3-common = "1.6.0"
+media3-common-ktx-version = "1.2.1"
 play-services-auth = "20.7.0"
+lifecycle-runtime-android = "2.8.7"
+media3-common-ktx = "1.6.0"
+roomVersion = "2.6.1"
 
 [libraries]
 # AndroidX
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment-ktx" }
+androidx-media3-common = { module = "androidx.media3:media3-common", version.ref = "media3-common" }
+androidx-media3-common-ktx-v121 = { module = "androidx.media3:media3-common-ktx", version.ref = "media3-common-ktx-version" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomVersion" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomVersion" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomVersion" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-compiler" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt-compiler" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
@@ -59,7 +71,10 @@ androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-r
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+material-v1120 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
+androidx-lifecycle-runtime-android = { group = "androidx.lifecycle", name = "lifecycle-runtime-android", version.ref = "lifecycle-runtime-android" }
+androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3-common-ktx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-application" }

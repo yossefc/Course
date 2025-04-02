@@ -9,15 +9,18 @@ import com.example.coursessupermarche.data.local.converters.DateTypeConverter
 import com.example.coursessupermarche.data.local.dao.ShoppingItemDao
 import com.example.coursessupermarche.data.local.dao.ShoppingListDao
 import com.example.coursessupermarche.data.local.dao.UserDao
+import com.example.coursessupermarche.data.local.entities.ProductSuggestionEntity
 import com.example.coursessupermarche.data.local.entities.ShoppingItemEntity
 import com.example.coursessupermarche.data.local.entities.ShoppingListEntity
 import com.example.coursessupermarche.data.local.entities.UserEntity
+
 
 @Database(
     entities = [
         ShoppingItemEntity::class,
         ShoppingListEntity::class,
-        UserEntity::class
+        UserEntity::class,
+        ProductSuggestionEntity::class
     ],
     version = 1,
     exportSchema = false
