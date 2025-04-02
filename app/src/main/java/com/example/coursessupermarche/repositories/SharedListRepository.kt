@@ -10,7 +10,6 @@ import com.example.coursessupermarche.data.local.dao.ShoppingItemDao
 import com.example.coursessupermarche.data.local.dao.ShoppingListDao
 import com.example.coursessupermarche.data.local.entities.ListInvitationEntity
 import com.example.coursessupermarche.data.local.entities.ListMemberEntity
-import com.example.coursessupermarche.data.local.entities.ShoppingItemEntity
 import com.example.coursessupermarche.data.local.entities.ShoppingListEntity
 import com.example.coursessupermarche.models.InvitationStatus
 import com.example.coursessupermarche.models.ListInvitation
@@ -23,9 +22,6 @@ import com.example.coursessupermarche.utils.NetworkMonitor
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import java.security.MessageDigest
@@ -34,6 +30,8 @@ import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 @Singleton
 class SharedListRepository @Inject constructor(
@@ -64,15 +62,11 @@ class SharedListRepository @Inject constructor(
 
     // Obtenir toutes les listes accessibles par l'utilisateur courant (créées ou partagées)
     fun getAccessibleLists(): Flow<List<ShoppingList>> {
-        val userId = auth.currentUser?.uid ?: return flowOf(emptyList())
+        val userId = auth.currentUser?.uid ?: return kotlinx.coroutines.flow.flowOf(emptyList())
 
         return shoppingListDao.getAccessibleListsByUserId(userId)
             .map { listEntities ->
-                val result = mutableListOf<ShoppingList>()
-                for (listEntity in listEntities) {
-                    result.add(listEntity.toModel())
-                }
-                result
+                listEntities.map { it.toModel() }
             }
     }
 
@@ -82,7 +76,9 @@ class SharedListRepository @Inject constructor(
 
         // Récupérer les items de la liste
         val items = try {
-            shoppingItemDao.getItemsByListId(listId).first().map { it.toModel() }
+            // Collecter le premier résultat du flow ou utiliser une liste vide s'il n'y a pas de résultat
+            val itemEntities = shoppingItemDao.getItemsByListId(listId).first()
+            itemEntities.map { it.toModel() }
         } catch (e: Exception) {
             Log.e(TAG, "Erreur lors de la récupération des items: ${e.message}", e)
             emptyList()
@@ -186,7 +182,7 @@ class SharedListRepository @Inject constructor(
         return newList
     }
 
-    // Partager une liste via invitation WhatsApp
+    // Partager une liste via invitation
     suspend fun createInvitation(listId: String): String {
         val currentUser = getCurrentUser() ?: throw IllegalStateException("Utilisateur non connecté")
 
@@ -526,12 +522,5 @@ class SharedListRepository @Inject constructor(
                 Log.e(TAG, "Erreur lors du nettoyage des invitations expirées sur Firestore", e)
             }
         }
-    }
-
-    // Vérifier si l'utilisateur est propriétaire d'une liste
-    suspend fun isListOwner(listId: String): Boolean {
-        val currentUser = getCurrentUser() ?: return false
-        val count = shoppingListDao.isOwner(currentUser.id, listId)
-        return count > 0
     }
 }

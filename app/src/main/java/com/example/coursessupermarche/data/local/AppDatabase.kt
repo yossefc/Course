@@ -13,8 +13,12 @@ import com.example.coursessupermarche.data.local.dao.ListMemberDao
 import com.example.coursessupermarche.data.local.dao.ShoppingItemDao
 import com.example.coursessupermarche.data.local.dao.ShoppingListDao
 import com.example.coursessupermarche.data.local.dao.UserDao
+import com.example.coursessupermarche.data.local.entities.ListMemberEntity
 import com.example.coursessupermarche.data.local.entities.ShoppingItemEntity
+import com.example.coursessupermarche.data.local.entities.ShoppingListEntity
 import com.example.coursessupermarche.data.local.entities.UserEntity
+import com.example.coursessupermarche.data.local.entities.ProductSuggestionEntity
+import com.example.coursessupermarche.data.local.entities.ListInvitationEntity
 
 @Database(
     entities = [
@@ -40,6 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun listMemberDao(): ListMemberDao
     abstract fun listInvitationDao(): ListInvitationDao
+
 
     companion object {
         @Volatile

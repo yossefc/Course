@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Nom de l'application -->
+    <string name="app_name">Courses Supermarché</string>
+
+    <!-- Actions et boutons -->
+    <string name="action_logout">Déconnexion</string>
+    <string name="action_sort_by_category">Trier par catégorie</string>
+    <string name="add_item">Ajouter un article</string>
+    <string name="update_item">Mettre à jour</string>
+    <string name="edit_item">Modifier l\'article</string>
+    <string name="empty_list_message">Votre liste est vide</string>
+
+    <!-- Ajout d'article -->
+    <string name="item_name">Nom du produit</string>
+    <string name="category">Catégorie</string>
+    <string name="quantity">Quantité</string>
+    <string name="add_new_item">Ajouter un nouvel article</string>
+
     <!-- Nouvelles chaînes pour la gestion des listes partagées -->
 
     <!-- Écran des listes -->

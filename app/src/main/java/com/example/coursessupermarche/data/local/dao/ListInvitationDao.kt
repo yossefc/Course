@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.coursessupermarche.data.local.entities.ListInvitationEntity
 import com.example.coursessupermarche.models.InvitationStatus
 import kotlinx.coroutines.flow.Flow
 import java.util.Date

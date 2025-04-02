@@ -10,7 +10,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.coursessupermarche.MainActivity
 import com.example.coursessupermarche.R
 import com.example.coursessupermarche.adapters.ShoppingListAdapter
@@ -20,6 +19,7 @@ import com.example.coursessupermarche.models.ShoppingList
 import com.example.coursessupermarche.utils.showSnackbar
 import com.example.coursessupermarche.viewmodels.SharedListViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -35,6 +35,7 @@ class ListsActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         setupRecyclerView()
         setupObservers()
@@ -47,13 +48,20 @@ class ListsActivity : AppCompatActivity() {
             }
         }
     }
+
     private fun showListOptionsMenu(list: ShoppingList, view: View) {
         val popup = PopupMenu(this, view)
         popup.menuInflater.inflate(R.menu.list_options_menu, popup.menu)
 
-        // Vérification directe
-        val isOwner = viewModel.isListOwner(list.id)
+        // Vérifier si l'utilisateur actuel est le propriétaire de la liste
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+        val isOwner = list.ownerId == currentUserId
+
+        // N'afficher "Supprimer la liste" que pour le propriétaire
         popup.menu.findItem(R.id.action_delete_list).isVisible = isOwner
+
+        // Pour une liste partagée, offrir la possibilité de quitter (sauf au propriétaire)
+        popup.menu.findItem(R.id.action_leave_list).isVisible = list.isShared && !isOwner
 
         // Si la liste n'est pas encore partagée, changer le texte du menu
         if (!list.isShared) {
@@ -83,6 +91,7 @@ class ListsActivity : AppCompatActivity() {
 
         popup.show()
     }
+
     private fun setupRecyclerView() {
         listAdapter = ShoppingListAdapter(
             onListClicked = { list ->
@@ -146,6 +155,11 @@ class ListsActivity : AppCompatActivity() {
         binding.fabAddList.setOnClickListener {
             showCreateListDialog()
         }
+
+        // Navigation retour
+        binding.toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
     }
 
     private fun showCreateListDialog() {
@@ -172,8 +186,6 @@ class ListsActivity : AppCompatActivity() {
 
         dialog.show()
     }
-
-
 
     private fun confirmLeaveList(listId: String, listName: String) {
         AlertDialog.Builder(this)

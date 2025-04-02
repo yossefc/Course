@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.coursessupermarche.models.ListInvitation
+import com.example.coursessupermarche.models.ListMember
 import com.example.coursessupermarche.models.ShoppingList
 import com.example.coursessupermarche.repositories.SharedListRepository
 import com.example.coursessupermarche.utils.NetworkMonitor
@@ -56,11 +57,167 @@ class SharedListViewModel @Inject constructor(
     private val _selectedList = MutableLiveData<ShoppingList?>(null)
     val selectedList: LiveData<ShoppingList?> = _selectedList
 
+    // Liste ID sélectionnée
+    private var selectedListId: String? = null
+
     // URL d'invitation générée
     private val _invitationUrl = MutableLiveData<String?>(null)
     val invitationUrl: LiveData<String?> = _invitationUrl
 
-    // ... autres méthodes
+    // Sélectionner une liste
+    fun selectList(listId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                selectedListId = listId
+                val list = sharedListRepository.getListById(listId)
+                _selectedList.value = list
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors de la sélection de la liste", e)
+                _error.value = "Impossible de charger la liste: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Créer une nouvelle liste
+    fun createShoppingList(name: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val newList = sharedListRepository.createShoppingList(name)
+                _successMessage.value = "Liste \"${name}\" créée avec succès"
+
+                // Mettre à jour la liste des listes (si nécessaire)
+                val currentLists = _sharedListsFlow.value.toMutableList()
+                currentLists.add(newList)
+                _sharedListsFlow.value = currentLists
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors de la création de la liste", e)
+                _error.value = "Erreur lors de la création de la liste: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Créer une invitation pour une liste
+    fun createInvitation(listId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val url = sharedListRepository.createInvitation(listId)
+                _invitationUrl.value = url
+                _successMessage.value = "Invitation créée avec succès"
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors de la création de l'invitation", e)
+                _error.value = "Erreur lors de la création de l'invitation: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Partager l'invitation via WhatsApp
+    fun shareInvitationViaWhatsApp(listId: String) {
+        viewModelScope.launch {
+            try {
+                val listName = selectedList.value?.name ?: "Liste de courses"
+                _invitationUrl.value?.let { url ->
+                    sharedListRepository.shareInvitationViaWhatsApp(url, listName)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors du partage de l'invitation", e)
+                _error.value = "Erreur lors du partage: ${e.message}"
+            }
+        }
+    }
+
+    // Quitter une liste partagée
+    fun leaveSharedList(listId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = sharedListRepository.leaveSharedList(listId)
+                if (result) {
+                    _successMessage.value = "Vous avez quitté la liste"
+
+                    // Mettre à jour la liste des listes
+                    val currentLists = _sharedListsFlow.value.toMutableList()
+                    currentLists.removeIf { it.id == listId }
+                    _sharedListsFlow.value = currentLists
+                } else {
+                    _error.value = "Impossible de quitter la liste"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors de la sortie de la liste", e)
+                _error.value = "Erreur: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Supprimer une liste
+    fun deleteList(listId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = sharedListRepository.deleteList(listId)
+                if (result) {
+                    _successMessage.value = "Liste supprimée avec succès"
+
+                    // Mettre à jour la liste des listes
+                    val currentLists = _sharedListsFlow.value.toMutableList()
+                    currentLists.removeIf { it.id == listId }
+                    _sharedListsFlow.value = currentLists
+                } else {
+                    _error.value = "Impossible de supprimer la liste"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors de la suppression de la liste", e)
+                _error.value = "Erreur: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Traiter une invitation depuis une URL
+    fun processInvitationFromUrl(url: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = sharedListRepository.processInvitationFromUrl(url)
+                if (result) {
+                    _successMessage.value = "Vous avez rejoint la liste avec succès"
+                } else {
+                    _error.value = "Invitation invalide ou expirée"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors du traitement de l'invitation", e)
+                _error.value = "Erreur: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // Effacer les messages d'erreur
+    fun clearError() {
+        _error.value = null
+    }
+
+    // Effacer les messages de succès
+    fun clearSuccessMessage() {
+        _successMessage.value = null
+    }
+
+    // Effacer l'URL d'invitation
+    fun clearInvitationUrl() {
+        _invitationUrl.value = null
+    }
 
     // Trier les listes par nom
     fun sortListsByName() {

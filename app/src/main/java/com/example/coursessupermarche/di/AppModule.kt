@@ -2,9 +2,12 @@ package com.example.coursessupermarche.di
 
 import android.content.Context
 import com.example.coursessupermarche.data.local.AppDatabase
+import com.example.coursessupermarche.data.local.dao.ListInvitationDao
+import com.example.coursessupermarche.data.local.dao.ListMemberDao
 import com.example.coursessupermarche.data.local.dao.ShoppingItemDao
 import com.example.coursessupermarche.data.local.dao.ShoppingListDao
 import com.example.coursessupermarche.data.local.dao.UserDao
+import com.example.coursessupermarche.repositories.SharedListRepository
 import com.example.coursessupermarche.repositories.ShoppingListRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -40,6 +43,17 @@ object AppModule {
         return database.userDao()
     }
 
+    // Nouvelles méthodes pour fournir les DAOs manquants
+    @Provides
+    fun provideListMemberDao(database: AppDatabase): ListMemberDao {
+        return database.listMemberDao()
+    }
+
+    @Provides
+    fun provideListInvitationDao(database: AppDatabase): ListInvitationDao {
+        return database.listInvitationDao()
+    }
+
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth {
@@ -62,5 +76,27 @@ object AppModule {
         userDao: UserDao
     ): ShoppingListRepository {
         return ShoppingListRepository(firestore, auth, shoppingListDao, shoppingItemDao, userDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSharedListRepository(
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth,
+        shoppingListDao: ShoppingListDao,
+        shoppingItemDao: ShoppingItemDao,
+        listMemberDao: ListMemberDao,
+        listInvitationDao: ListInvitationDao,
+        @ApplicationContext context: Context
+    ): SharedListRepository {
+        return SharedListRepository(
+            firestore,
+            auth,
+            shoppingListDao,
+            shoppingItemDao,
+            listMemberDao,
+            listInvitationDao,
+            context
+        )
     }
 }

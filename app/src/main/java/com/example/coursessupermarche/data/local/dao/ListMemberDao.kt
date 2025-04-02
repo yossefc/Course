@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.coursessupermarche.data.local.entities.ListMemberEntity
 import kotlinx.coroutines.flow.Flow
 
 // DAO pour les membres d'une liste partagée

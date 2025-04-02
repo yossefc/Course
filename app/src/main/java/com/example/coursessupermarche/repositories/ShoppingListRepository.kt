@@ -15,6 +15,7 @@ import com.example.coursessupermarche.utils.NetworkMonitor
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -25,6 +26,10 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Repository pour gérer les listes de courses et leurs articles.
+ * Gère la persistance locale (Room) et la synchronisation avec Firebase.
+ */
 @Singleton
 class ShoppingListRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -33,13 +38,10 @@ class ShoppingListRepository @Inject constructor(
     private val shoppingItemDao: ShoppingItemDao,
     private val userDao: UserDao
 ) {
-
     private val TAG = "ShoppingListRepository"
 
-    // Collection pour les listes de courses
+    // Collections Firestore
     private val listsCollection = firestore.collection("lists")
-
-    // Collection pour les suggestions de produits
     private val suggestionsCollection = firestore.collection("product_suggestions")
 
     // Obtenir l'ID de l'utilisateur courant
@@ -48,7 +50,9 @@ class ShoppingListRepository @Inject constructor(
             ?: throw IllegalStateException("Aucun utilisateur connecté")
     }
 
-    // Sauvegarder l'utilisateur courant en local
+    /**
+     * Sauvegarde l'utilisateur courant en local
+     */
     suspend fun saveCurrentUser() {
         val firebaseUser = auth.currentUser ?: return
 
@@ -60,37 +64,47 @@ class ShoppingListRepository @Inject constructor(
         )
 
         userDao.insert(UserEntity.fromModel(user))
+        Log.d(TAG, "Utilisateur sauvegardé: ${user.id}")
     }
 
-    // Observer les changements dans la liste d'articles
+    /**
+     * Observer les changements dans la liste d'articles
+     */
     fun observeShoppingItems(listId: String): Flow<List<ShoppingItem>> {
         Log.d(TAG, "Observation démarrée pour la liste: $listId")
         return shoppingItemDao.getItemsByListId(listId)
-            .map { entities ->
-                Log.d(TAG, "Nouvelles données: ${entities.size} éléments")
-                entities.map { it.toModel() }
-            }
-            .distinctUntilChanged() // Ne déclenche que lorsque les données changent vraiment
+            .map { entities -> entities.map { it.toModel() } }
+            .distinctUntilChanged()
             .catch { exception ->
                 Log.e(TAG, "Erreur dans le flux d'observation", exception)
-                emit(emptyList()) // Émettre une liste vide en cas d'erreur
+                emit(emptyList())
             }
     }
 
-    // Obtenir ou créer une liste principale pour l'utilisateur courant
+    /**
+     * Obtenir ou créer une liste principale pour l'utilisateur courant
+     */
     suspend fun getCurrentUserMainListId(): String {
         val userId = getCurrentUserId()
 
         // Essayer d'abord d'obtenir la liste locale
         val localList = shoppingListDao.getLatestListByUserId(userId)
         if (localList != null) {
+            Log.d(TAG, "Liste existante trouvée: ${localList.id}")
             return localList.id
         }
 
+        return createNewList(userId)
+    }
+
+    /**
+     * Crée une nouvelle liste pour l'utilisateur
+     */
+    private suspend fun createNewList(userId: String): String {
         // Si online, essayer d'obtenir la liste du serveur
         if (NetworkMonitor.isOnline) {
             try {
-                // Chercher une liste existante
+                // Chercher une liste existante dans Firestore
                 val querySnapshot = listsCollection
                     .whereEqualTo("userId", userId)
                     .limit(1)
@@ -112,41 +126,47 @@ class ShoppingListRepository @Inject constructor(
                         createdAt = createdAt,
                         updatedAt = updatedAt,
                         isRemotelySync = true,
-                        isShared = false,     // Paramètre ajouté
-                        ownerId = userId      // Par défaut, le propriétaire est l'utilisateur qui crée la liste
+                        isShared = false,
+                        ownerId = userId
                     )
 
                     shoppingListDao.insert(list)
+                    Log.d(TAG, "Liste récupérée depuis Firestore: $listId")
                     return listId
                 }
 
-                // Sinon, créer une nouvelle liste
+                // Sinon, créer une nouvelle liste sur Firestore
+                val listId = UUID.randomUUID().toString()
                 val newList = hashMapOf(
+                    "id" to listId,
                     "userId" to userId,
                     "name" to "Ma liste de courses",
                     "createdAt" to Date(),
-                    "updatedAt" to Date()
+                    "updatedAt" to Date(),
+                    "isShared" to false,
+                    "ownerId" to userId
                 )
 
-                val result = listsCollection.add(newList).await()
-                val listId = result.id
+                listsCollection.document(listId).set(newList).await()
 
                 // Sauvegarder en local
                 val list = ShoppingListEntity(
                     id = listId,
                     userId = userId,
-                    name = name,
-                    createdAt = createdAt,
-                    updatedAt = updatedAt,
+                    name = "Ma liste de courses",
+                    createdAt = Date(),
+                    updatedAt = Date(),
                     isRemotelySync = true,
-                    isShared = false,     // Paramètre ajouté
-                    ownerId = userId      // Par défaut, le propriétaire est l'utilisateur qui crée la liste
+                    isShared = false,
+                    ownerId = userId
                 )
 
                 shoppingListDao.insert(list)
+                Log.d(TAG, "Nouvelle liste créée sur Firestore: $listId")
                 return listId
             } catch (e: Exception) {
-                Log.e(TAG, "Erreur lors de la création de la liste", e)
+                Log.e(TAG, "Erreur lors de la création de la liste sur Firestore", e)
+                // Continuer avec la création locale
             }
         }
 
@@ -155,202 +175,245 @@ class ShoppingListRepository @Inject constructor(
         val list = ShoppingListEntity(
             id = listId,
             userId = userId,
-            name = name,
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-            isRemotelySync = true,
-            isShared = false,     // Paramètre ajouté
-            ownerId = userId      // Par défaut, le propriétaire est l'utilisateur qui crée la liste
+            name = "Ma liste de courses",
+            createdAt = Date(),
+            updatedAt = Date(),
+            isRemotelySync = false,
+            isShared = false,
+            ownerId = userId
         )
 
         shoppingListDao.insert(list)
+        Log.d(TAG, "Nouvelle liste créée localement: $listId")
         return listId
     }
 
-    // Ajouter un nouvel article à la liste avec journalisation détaillée
+    /**
+     * Ajouter un nouvel article à la liste
+     */
     suspend fun addItem(listId: String, item: ShoppingItem) {
-        Log.d(TAG, "==== DÉBUT AJOUT PRODUIT ====")
-        Log.d(TAG, "Produit à ajouter: ID=${item.id}, Nom=${item.name}, Catégorie=${item.category}")
-        Log.d(TAG, "Liste cible: ID=$listId")
-        Log.d(TAG, "Statut réseau: ${if (NetworkMonitor.isOnline) "EN LIGNE" else "HORS LIGNE"}")
-        Log.d(TAG, "Utilisateur connecté: ${auth.currentUser?.uid ?: "NON CONNECTÉ"}")
-
         try {
             // Mettre à jour la date de modification de la liste
             shoppingListDao.updateTimestamp(listId, Date().time)
-            Log.d(TAG, "✓ Timestamp de liste mis à jour dans la base locale")
 
             // Ajouter l'article localement
             val entity = ShoppingItemEntity.fromModel(
                 model = item,
                 listId = listId,
-                isRemotelySync = false // Commencer avec non-synchronisé
+                isRemotelySync = NetworkMonitor.isOnline
             )
             shoppingItemDao.insert(entity)
-            Log.d(TAG, "✓ Article ajouté dans la base locale")
 
             // Ajouter à Firebase si en ligne
             if (NetworkMonitor.isOnline) {
-                try {
-                    auth.currentUser?.let { user ->
-                        Log.d(TAG, "Tentative de synchronisation avec Firebase...")
-
-                        // Vérifier que la liste existe dans Firestore
-                        val listDoc = listsCollection.document(listId).get().await()
-                        if (!listDoc.exists()) {
-                            Log.w(TAG, "⚠️ La liste n'existe pas dans Firestore, création...")
-                            val listData = hashMapOf(
-                                "userId" to user.uid,
-                                "name" to "Ma liste de courses",
-                                "createdAt" to Date(),
-                                "updatedAt" to Date()
-                            )
-                            listsCollection.document(listId).set(listData).await()
-                            Log.d(TAG, "✓ Liste créée dans Firestore")
-                        }
-
-                        // Mettre à jour le timestamp de la liste
-                        listsCollection.document(listId)
-                            .update("updatedAt", Date())
-                            .await()
-                        Log.d(TAG, "✓ Timestamp de liste mis à jour dans Firestore")
-
-                        // Ajouter l'élément dans la sous-collection items
-                        val itemCollection = listsCollection.document(listId).collection("items")
-
-                        // Convertir en Map pour le débogage
-                        val itemMap = mapOf(
-                            "id" to item.id,
-                            "name" to item.name,
-                            "quantity" to item.quantity,
-                            "category" to item.category,
-                            "isChecked" to item.isChecked,
-                            "createdAt" to item.createdAt
-                        )
-                        Log.d(TAG, "Données à envoyer à Firestore: $itemMap")
-
-                        // Ajouter le document
-                        itemCollection.document(item.id)
-                            .set(itemMap)
-                            .await()
-                        Log.d(TAG, "✓ Article ajouté dans Firestore - document ID: ${item.id}")
-
-                        // Marquer comme synchronisé
-                        shoppingItemDao.markItemAsSynced(item.id)
-                        Log.d(TAG, "✓ Article marqué comme synchronisé dans la base locale")
-                    } ?: run {
-                        Log.w(TAG, "⚠️ Pas d'utilisateur connecté pour la synchronisation")
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "❌ ERREUR lors de l'ajout à Firebase: ${e.javaClass.simpleName} - ${e.message}", e)
-                    // Continuer quand même - l'article est sauvegardé localement
-                }
-            } else {
-                Log.d(TAG, "ℹ️ Mode hors ligne: ajout seulement local")
+                syncItemToFirebase(listId, item)
             }
 
-            // Ajouter en historique pour les suggestions futures
-            try {
-                addToProductSuggestions(item.name)
-                Log.d(TAG, "✓ Produit ajouté aux suggestions")
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ ERREUR lors de l'ajout aux suggestions: ${e.message}", e)
-            }
+            // Ajouter aux suggestions pour l'autocomplétion
+            addToProductSuggestions(item.name)
+
+            Log.d(TAG, "Article ajouté avec succès: ${item.id}")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ ERREUR CRITIQUE lors de l'ajout du produit: ${e.message}", e)
-            throw e  // Relancer pour que le ViewModel puisse gérer l'erreur
-        } finally {
-            Log.d(TAG, "==== FIN AJOUT PRODUIT ====")
+            Log.e(TAG, "Erreur lors de l'ajout de l'article", e)
+            throw e
         }
     }
 
-    // Mettre à jour un article existant
-    suspend fun updateItem(listId: String, item: ShoppingItem) {
-        // Mettre à jour la date de modification de la liste
-        shoppingListDao.updateTimestamp(listId, Date().time)
+    /**
+     * Synchronise un article avec Firebase
+     */
+    private suspend fun syncItemToFirebase(listId: String, item: ShoppingItem) {
+        try {
+            auth.currentUser?.let { user ->
+                // Vérifier que la liste existe dans Firestore
+                ensureListExistsInFirestore(listId, user.uid)
 
-        // Mettre à jour l'article localement
-        val entity = ShoppingItemEntity.fromModel(
-            model = item,
-            listId = listId,
-            isRemotelySync = NetworkMonitor.isOnline
-        )
-        shoppingItemDao.update(entity)
-
-        // Mettre à jour sur Firebase si en ligne
-        if (NetworkMonitor.isOnline) {
-            try {
+                // Mettre à jour le timestamp de la liste
                 listsCollection.document(listId)
                     .update("updatedAt", Date())
                     .await()
+
+                // Ajouter l'élément dans la sous-collection items
+                val itemMap = mapOf(
+                    "id" to item.id,
+                    "name" to item.name,
+                    "quantity" to item.quantity,
+                    "category" to item.category,
+                    "isChecked" to item.isChecked,
+                    "createdAt" to item.createdAt
+                )
 
                 listsCollection.document(listId)
                     .collection("items")
                     .document(item.id)
-                    .set(item)
+                    .set(itemMap)
                     .await()
 
                 // Marquer comme synchronisé
                 shoppingItemDao.markItemAsSynced(item.id)
-            } catch (e: Exception) {
-                Log.e(TAG, "Erreur lors de la mise à jour de l'article", e)
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur lors de la synchronisation avec Firebase", e)
+            // Ne pas propager l'erreur - l'article est sauvegardé localement
         }
     }
 
-    // Supprimer un article
-    suspend fun deleteItem(listId: String, itemId: String) {
-        // Mettre à jour la date de modification de la liste
-        shoppingListDao.updateTimestamp(listId, Date().time)
-
-        // Supprimer l'article localement
-        shoppingItemDao.deleteByListIdAndItemId(listId, itemId)
-
-        // Supprimer sur Firebase si en ligne
-        if (NetworkMonitor.isOnline) {
-            try {
-                listsCollection.document(listId)
-                    .update("updatedAt", Date())
-                    .await()
-
-                listsCollection.document(listId)
-                    .collection("items")
-                    .document(itemId)
-                    .delete()
-                    .await()
-            } catch (e: Exception) {
-                Log.e(TAG, "Erreur lors de la suppression de l'article", e)
+    /**
+     * S'assure qu'une liste existe dans Firestore
+     */
+    private suspend fun ensureListExistsInFirestore(listId: String, userId: String) {
+        try {
+            val listDoc = listsCollection.document(listId).get().await()
+            if (!listDoc.exists()) {
+                val listData = hashMapOf(
+                    "id" to listId,
+                    "userId" to userId,
+                    "name" to "Ma liste de courses",
+                    "createdAt" to Date(),
+                    "updatedAt" to Date(),
+                    "isShared" to false,
+                    "ownerId" to userId
+                )
+                listsCollection.document(listId).set(listData).await()
+                Log.d(TAG, "Liste créée dans Firestore: $listId")
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur lors de la vérification/création de liste dans Firestore", e)
+            throw e
         }
     }
 
-    // Récupérer un article par son ID
-    suspend fun getItemById(listId: String, itemId: String): ShoppingItem? {
-        return shoppingItemDao.getItemById(itemId)?.toModel()
-    }
-    suspend fun getListName(listId: String): String? {
-        return shoppingListDao.getListName(listId)
-    }
-    // Ajouter un produit à l'historique des suggestions
-    suspend fun addToProductSuggestions(productName: String) {
-        val userId = getCurrentUserId()
+    /**
+     * Mettre à jour un article existant
+     */
+    suspend fun updateItem(listId: String, item: ShoppingItem) {
+        try {
+            // Mettre à jour la date de modification de la liste
+            shoppingListDao.updateTimestamp(listId, Date().time)
 
-        // Vérifier si ce produit existe déjà localement
-        val exists = userDao.productSuggestionExists(userId, productName)
-
-        // Si le produit existe déjà, mettre à jour sa date
-        if (exists) {
-            val suggestion = ProductSuggestionEntity(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                name = productName,
-                updatedAt = Date()
+            // Mettre à jour l'article localement
+            val entity = ShoppingItemEntity.fromModel(
+                model = item,
+                listId = listId,
+                isRemotelySync = NetworkMonitor.isOnline
             )
-            userDao.insertProductSuggestion(suggestion)
+            shoppingItemDao.update(entity)
 
             // Mettre à jour sur Firebase si en ligne
             if (NetworkMonitor.isOnline) {
                 try {
+                    listsCollection.document(listId)
+                        .update("updatedAt", Date())
+                        .await()
+
+                    val itemMap = mapOf(
+                        "id" to item.id,
+                        "name" to item.name,
+                        "quantity" to item.quantity,
+                        "category" to item.category,
+                        "isChecked" to item.isChecked,
+                        "createdAt" to item.createdAt
+                    )
+
+                    listsCollection.document(listId)
+                        .collection("items")
+                        .document(item.id)
+                        .set(itemMap)
+                        .await()
+
+                    // Marquer comme synchronisé
+                    shoppingItemDao.markItemAsSynced(item.id)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Erreur lors de la mise à jour sur Firebase", e)
+                }
+            }
+
+            Log.d(TAG, "Article mis à jour avec succès: ${item.id}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur lors de la mise à jour de l'article", e)
+            throw e
+        }
+    }
+
+    /**
+     * Supprimer un article
+     */
+    suspend fun deleteItem(listId: String, itemId: String) {
+        try {
+            // Mettre à jour la date de modification de la liste
+            shoppingListDao.updateTimestamp(listId, Date().time)
+
+            // Supprimer l'article localement
+            shoppingItemDao.deleteByListIdAndItemId(listId, itemId)
+
+            // Supprimer sur Firebase si en ligne
+            if (NetworkMonitor.isOnline) {
+                try {
+                    listsCollection.document(listId)
+                        .update("updatedAt", Date())
+                        .await()
+
+                    listsCollection.document(listId)
+                        .collection("items")
+                        .document(itemId)
+                        .delete()
+                        .await()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Erreur lors de la suppression sur Firebase", e)
+                }
+            }
+
+            Log.d(TAG, "Article supprimé avec succès: $itemId")
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur lors de la suppression de l'article", e)
+            throw e
+        }
+    }
+
+    /**
+     * Récupérer un article par son ID
+     */
+    suspend fun getItemById(listId: String, itemId: String): ShoppingItem? {
+        return shoppingItemDao.getItemById(itemId)?.toModel()
+    }
+
+    /**
+     * Récupérer le nom d'une liste
+     */
+    suspend fun getListName(listId: String): String? {
+        return shoppingListDao.getListName(listId)
+    }
+
+    /**
+     * Récupérer une liste par son ID
+     */
+    suspend fun getListById(listId: String): ShoppingList? {
+        val listEntity = shoppingListDao.getListById(listId) ?: return null
+        return listEntity.toModel()
+    }
+
+    /**
+     * Ajouter un produit à l'historique des suggestions
+     */
+    suspend fun addToProductSuggestions(productName: String) {
+        if (productName.isBlank()) return
+
+        val userId = getCurrentUserId()
+        val exists = userDao.productSuggestionExists(userId, productName)
+        val suggestion = ProductSuggestionEntity(
+            id = UUID.randomUUID().toString(),
+            userId = userId,
+            name = productName,
+            updatedAt = Date()
+        )
+
+        // Sauvegarder localement
+        userDao.insertProductSuggestion(suggestion)
+
+        // Synchroniser avec Firebase si en ligne
+        if (NetworkMonitor.isOnline) {
+            try {
+                if (exists) {
                     val querySnapshot = suggestionsCollection
                         .whereEqualTo("userId", userId)
                         .whereEqualTo("name", productName)
@@ -363,131 +426,128 @@ class ShoppingListRepository @Inject constructor(
                             .update("updatedAt", Date())
                             .await()
                     } else {
-                        val suggestion = hashMapOf(
-                            "userId" to userId,
-                            "name" to productName,
-                            "createdAt" to Date(),
-                            "updatedAt" to Date()
-                        )
-                        suggestionsCollection.add(suggestion).await()
+                        addSuggestionToFirebase(userId, productName)
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Erreur lors de la mise à jour de la suggestion", e)
+                } else {
+                    addSuggestionToFirebase(userId, productName)
                 }
-            }
-            return
-        }
-
-        // Sinon, ajouter un nouveau produit localement
-        val suggestion = ProductSuggestionEntity(
-            id = UUID.randomUUID().toString(),
-            userId = userId,
-            name = productName,
-            updatedAt = Date()
-        )
-        userDao.insertProductSuggestion(suggestion)
-
-        // Ajouter sur Firebase si en ligne
-        if (NetworkMonitor.isOnline) {
-            try {
-                val suggestionData = hashMapOf(
-                    "userId" to userId,
-                    "name" to productName,
-                    "createdAt" to Date(),
-                    "updatedAt" to Date()
-                )
-                suggestionsCollection.add(suggestionData).await()
             } catch (e: Exception) {
-                Log.e(TAG, "Erreur lors de l'ajout de la suggestion", e)
+                Log.e(TAG, "Erreur lors de la synchronisation de la suggestion", e)
             }
         }
     }
 
-    // Récupérer les suggestions de produits
+    /**
+     * Ajoute une suggestion à Firebase
+     */
+    private suspend fun addSuggestionToFirebase(userId: String, productName: String) {
+        val suggestionData = hashMapOf(
+            "userId" to userId,
+            "name" to productName,
+            "createdAt" to Date(),
+            "updatedAt" to Date()
+        )
+        suggestionsCollection.add(suggestionData).await()
+    }
+
+    /**
+     * Récupérer les suggestions de produits
+     */
     suspend fun getProductSuggestions(): List<String> {
         val userId = getCurrentUserId()
         return userDao.getProductSuggestionNames(userId, 20)
     }
-    // À ajouter dans ShoppingListRepository
-    suspend fun getListById(listId: String): ShoppingList? {
-        // Utiliser directement le DAO pour récupérer la liste
-        val listEntity = shoppingListDao.getListById(listId) ?: return null
-        return listEntity.toModel()
-    }
-    // Synchroniser les données non synchronisées
+
+    /**
+     * Synchroniser les données non synchronisées
+     */
     suspend fun syncData() {
         if (!NetworkMonitor.isOnline) return
 
         try {
             // Vérifier si l'utilisateur est authentifié
             val currentUser = auth.currentUser ?: return
-            Log.d(TAG, "Début de la synchronisation pour l'utilisateur: ${currentUser.uid}")
+            Log.d(TAG, "Synchronisation des données pour: ${currentUser.uid}")
 
-            // Synchroniser les listes
-            val unsyncedLists = shoppingListDao.getUnsyncedLists()
-            for (list in unsyncedLists) {
-                try {
-                    // Vérifier que l'utilisateur est propriétaire de la liste
-                    if (list.userId != currentUser.uid) {
-                        Log.w(TAG, "Skipping list sync - permission denied")
-                        continue
-                    }
+            syncUnsyncedLists(currentUser.uid)
+            syncUnsyncedItems(currentUser.uid)
 
-                    val listData = hashMapOf(
-                        "userId" to list.userId,
-                        "name" to list.name,
-                        "createdAt" to list.createdAt,
-                        "updatedAt" to list.updatedAt
-                    )
-
-                    listsCollection.document(list.id)
-                        .set(listData)
-                        .await()
-
-                    shoppingListDao.markListAsSynced(list.id)
-                    Log.d(TAG, "Liste synchronisée: ${list.id}")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Erreur lors de la synchronisation de la liste ${list.id}", e)
-                }
-            }
-
-            // Synchroniser les articles
-            val unsyncedItems = shoppingItemDao.getUnsyncedItems()
-            for (item in unsyncedItems) {
-                try {
-                    // Vérifier si l'utilisateur a le droit d'accéder à cette liste
-                    val listEntity = shoppingListDao.getListById(item.listId)
-                    if (listEntity == null || listEntity.userId != currentUser.uid) {
-                        Log.w(TAG, "Skipping item sync - permission denied")
-                        continue
-                    }
-
-                    val itemModel = item.toModel()
-
-                    // Convertir en Map pour le débogage et l'envoi
-                    val itemMap = mapOf(
-                        "id" to itemModel.id,
-                        "name" to itemModel.name,
-                        "quantity" to itemModel.quantity,
-                        "category" to itemModel.category,
-                        "isChecked" to itemModel.isChecked,
-                        "createdAt" to itemModel.createdAt
-                    )
-
-                    listsCollection.document(item.listId)
-                        .collection("items")
-                        .document(item.id)
-                        .set(itemMap)
-                        .await()
-
-                    shoppingItemDao.markItemAsSynced(item.id)
-                    Log.d(TAG, "Article synchronisé: ${item.id}")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Erreur lors de la synchronisation de l'article ${item.id}", e)
-                }
-            }
+            Log.d(TAG, "Synchronisation terminée")
         } catch (e: Exception) {
-            Log.e(TAG, "Erreur globale lors de la synchronisation", e)
+            Log.e(TAG, "Erreur lors de la synchronisation", e)
+        }
+    }
+
+    /**
+     * Synchronise les listes non synchronisées
+     */
+    private suspend fun syncUnsyncedLists(userId: String) {
+        val unsyncedLists = shoppingListDao.getUnsyncedLists()
+        for (list in unsyncedLists) {
+            try {
+                // Vérifier que l'utilisateur est propriétaire de la liste
+                if (list.userId != userId) {
+                    Log.w(TAG, "Utilisateur non autorisé à synchroniser la liste: ${list.id}")
+                    continue
+                }
+
+                val listData = hashMapOf(
+                    "id" to list.id,
+                    "userId" to list.userId,
+                    "name" to list.name,
+                    "createdAt" to list.createdAt,
+                    "updatedAt" to list.updatedAt,
+                    "isShared" to list.isShared,
+                    "ownerId" to list.ownerId
+                )
+
+                listsCollection.document(list.id)
+                    .set(listData)
+                    .await()
+
+                shoppingListDao.markListAsSynced(list.id)
+                Log.d(TAG, "Liste synchronisée: ${list.id}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors de la synchronisation de la liste ${list.id}", e)
+            }
+        }
+    }
+
+    /**
+     * Synchronise les articles non synchronisés
+     */
+    private suspend fun syncUnsyncedItems(userId: String) {
+        val unsyncedItems = shoppingItemDao.getUnsyncedItems()
+        for (item in unsyncedItems) {
+            try {
+                // Vérifier si l'utilisateur a le droit d'accéder à cette liste
+                val listEntity = shoppingListDao.getListById(item.listId)
+                if (listEntity == null || listEntity.userId != userId) {
+                    Log.w(TAG, "Utilisateur non autorisé à synchroniser l'article: ${item.id}")
+                    continue
+                }
+
+                val itemModel = item.toModel()
+                val itemMap = mapOf(
+                    "id" to itemModel.id,
+                    "name" to itemModel.name,
+                    "quantity" to itemModel.quantity,
+                    "category" to itemModel.category,
+                    "isChecked" to itemModel.isChecked,
+                    "createdAt" to itemModel.createdAt
+                )
+
+                listsCollection.document(item.listId)
+                    .collection("items")
+                    .document(item.id)
+                    .set(itemMap)
+                    .await()
+
+                shoppingItemDao.markItemAsSynced(item.id)
+                Log.d(TAG, "Article synchronisé: ${item.id}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors de la synchronisation de l'article ${item.id}", e)
+            }
         }
     }
 }
