@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.example.coursessupermarche.data.local.entities.ProductSuggestionEntity
 import com.example.coursessupermarche.data.local.entities.UserEntity
 import kotlinx.coroutines.flow.Flow
 

@@ -12,13 +12,11 @@ import com.example.coursessupermarche.utils.NetworkMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.UUID
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,6 +34,9 @@ class ShoppingListViewModel @Inject constructor(
 
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
+
+    private val _listName = MutableLiveData<String?>(null)
+    val listName: LiveData<String?> = _listName
 
     private var currentListId: String? = null
 
@@ -79,8 +80,70 @@ class ShoppingListViewModel @Inject constructor(
             Log.e(TAG, "Erreur lors de la synchronisation: ${e.message}", e)
         }
     }
-    // Ajoutez ces deux méthodes à ShoppingListViewModel.kt :
 
+    // Charger une liste spécifique (pour les listes partagées)
+    fun loadSpecificList(listId: String) {
+        // Déjà en cours de chargement, éviter les doubles appels
+        if (_isLoading.value == true) {
+            Log.d(TAG, "Chargement déjà en cours, ignoré")
+            return
+        }
+
+        viewModelScope.launch {
+            Log.d(TAG, "Début du chargement de la liste spécifique: $listId")
+            _isLoading.value = true
+            try {
+                currentListId = listId
+                Log.d(TAG, "Liste spécifique définie: $listId")
+
+                // Charger le nom de la liste
+                loadListName(listId)
+
+                // Observer les changements de la liste
+                try {
+                    repository.observeShoppingItems(listId)
+                        .catch { e ->
+                            Log.e(TAG, "Erreur dans la collecte du flux: ${e.message}", e)
+                            _error.postValue("Erreur lors du chargement des produits: ${e.message}")
+                        }
+                        .collect { items ->
+                            val sortedItems = when (_sortType) {
+                                SortType.BY_NAME -> items.sortedBy { it.name }
+                                SortType.BY_CATEGORY -> items.sortedBy { it.category }
+                                SortType.BY_CREATION -> items
+                            }
+                            Log.d(TAG, "Items mis à jour: ${items.size} articles")
+                            _shoppingItemsFlow.value = sortedItems
+                        }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Erreur lors de la collecte des données: ${e.message}", e)
+                    _error.postValue("Erreur lors du suivi des produits: ${e.message}")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur globale: ${e.message}", e)
+                _error.value = e.localizedMessage ?: "Une erreur s'est produite"
+                // En cas d'erreur, initialiser avec une liste vide pour éviter le blocage
+                _shoppingItemsFlow.value = emptyList()
+            } finally {
+                _isLoading.value = false
+                Log.d(TAG, "Fin du chargement de la liste")
+            }
+        }
+    }
+
+    // Charger le nom de la liste actuelle
+    fun loadListName(listId: String) {
+        viewModelScope.launch {
+            try {
+                val list = repository.getListById(listId)
+                list?.let {
+                    _listName.value = it.name
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erreur lors du chargement du nom de la liste", e)
+            }
+        }
+    }
 
     // Charger la liste principale de l'utilisateur courant
     fun loadCurrentUserList() {
@@ -101,6 +164,9 @@ class ShoppingListViewModel @Inject constructor(
 
                 currentListId = listId
                 Log.d(TAG, "Liste chargée avec succès, ID: $listId")
+
+                // Charger le nom de la liste
+                loadListName(listId)
 
                 // Observer les changements de la liste
                 try {
@@ -149,6 +215,9 @@ class ShoppingListViewModel @Inject constructor(
                 Log.d(TAG, "Liste chargée avec succès, ID: $listId")
                 currentListId = listId
 
+                // Charger le nom de la liste
+                loadListName(listId)
+
                 // Émettre un message pour indiquer que la liste est prête
                 _error.value = "Liste chargée, vous pouvez maintenant ajouter des produits"
 
@@ -165,7 +234,6 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    // Modification de la méthode addItem pour gérer le cas où currentListId est null :
     fun addItem(item: ShoppingItem) {
         viewModelScope.launch {
             Log.d(TAG, "==== DÉBUT AJOUT ARTICLE VIEWMODEL ====")

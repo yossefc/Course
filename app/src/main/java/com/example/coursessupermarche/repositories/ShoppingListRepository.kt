@@ -111,7 +111,9 @@ class ShoppingListRepository @Inject constructor(
                         name = name,
                         createdAt = createdAt,
                         updatedAt = updatedAt,
-                        isRemotelySync = true
+                        isRemotelySync = true,
+                        isShared = false,     // Paramètre ajouté
+                        ownerId = userId      // Par défaut, le propriétaire est l'utilisateur qui crée la liste
                     )
 
                     shoppingListDao.insert(list)
@@ -133,10 +135,12 @@ class ShoppingListRepository @Inject constructor(
                 val list = ShoppingListEntity(
                     id = listId,
                     userId = userId,
-                    name = "Ma liste de courses",
-                    createdAt = Date(),
-                    updatedAt = Date(),
-                    isRemotelySync = true
+                    name = name,
+                    createdAt = createdAt,
+                    updatedAt = updatedAt,
+                    isRemotelySync = true,
+                    isShared = false,     // Paramètre ajouté
+                    ownerId = userId      // Par défaut, le propriétaire est l'utilisateur qui crée la liste
                 )
 
                 shoppingListDao.insert(list)
@@ -151,10 +155,12 @@ class ShoppingListRepository @Inject constructor(
         val list = ShoppingListEntity(
             id = listId,
             userId = userId,
-            name = "Ma liste de courses",
-            createdAt = Date(),
-            updatedAt = Date(),
-            isRemotelySync = false
+            name = name,
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+            isRemotelySync = true,
+            isShared = false,     // Paramètre ajouté
+            ownerId = userId      // Par défaut, le propriétaire est l'utilisateur qui crée la liste
         )
 
         shoppingListDao.insert(list)
@@ -322,7 +328,9 @@ class ShoppingListRepository @Inject constructor(
     suspend fun getItemById(listId: String, itemId: String): ShoppingItem? {
         return shoppingItemDao.getItemById(itemId)?.toModel()
     }
-
+    suspend fun getListName(listId: String): String? {
+        return shoppingListDao.getListName(listId)
+    }
     // Ajouter un produit à l'historique des suggestions
     suspend fun addToProductSuggestions(productName: String) {
         val userId = getCurrentUserId()
@@ -400,7 +408,12 @@ class ShoppingListRepository @Inject constructor(
         val userId = getCurrentUserId()
         return userDao.getProductSuggestionNames(userId, 20)
     }
-
+    // À ajouter dans ShoppingListRepository
+    suspend fun getListById(listId: String): ShoppingList? {
+        // Utiliser directement le DAO pour récupérer la liste
+        val listEntity = shoppingListDao.getListById(listId) ?: return null
+        return listEntity.toModel()
+    }
     // Synchroniser les données non synchronisées
     suspend fun syncData() {
         if (!NetworkMonitor.isOnline) return

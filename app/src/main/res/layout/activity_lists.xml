@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.coursessupermarche.MainActivity">
+    tools:context=".ui.lists.ListsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:title="@string/app_name"
+            app:title="@string/my_lists"
             app:titleTextColor="@android:color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -27,22 +27,20 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewItems"
+            android:id="@+id/recyclerViewLists"
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
-            tools:listitem="@layout/item_shopping" />
+            tools:listitem="@layout/item_shopping_list" />
 
         <TextView
             android:id="@+id/textViewEmpty"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/empty_list_message"
+            android:text="@string/empty_lists_message"
             android:textSize="18sp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -64,12 +62,12 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddItem"
+        android:id="@+id/fabAddList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:contentDescription="@string/add_item"
+        android:contentDescription="@string/add_list"
         app:srcCompat="@drawable/ic_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

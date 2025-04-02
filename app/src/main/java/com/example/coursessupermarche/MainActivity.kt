@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.coursessupermarche.adapters.ShoppingItemAdapter
 import com.example.coursessupermarche.databinding.ActivityMainBinding
 import com.example.coursessupermarche.models.ShoppingItem
+import com.example.coursessupermarche.ui.lists.ListsActivity
 import com.example.coursessupermarche.utils.SwipeToDeleteCallback
 import com.example.coursessupermarche.utils.showSnackbar
 import com.example.coursessupermarche.viewmodels.ShoppingListViewModel
@@ -30,13 +31,12 @@ import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 
-@AndroidEntryPoint  // Ajout de cette annotation essentielle
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: ShoppingItemAdapter
 
-    // Utilisation de viewModels() avec Hilt
     private val viewModel: ShoppingListViewModel by viewModels()
 
     @Inject
@@ -55,9 +55,8 @@ class MainActivity : AppCompatActivity() {
 
         // Vérifier l'authentification
         checkAuth()
-        // Ajouter ce code dans la méthode onCreate de MainActivity.kt juste après le appel à checkAuth():
 
-// Configurer un délai maximum de chargement
+        // Configurer un délai maximum de chargement
         lifecycleScope.launch {
             delay(10000) // Attendre 10 secondes
             if (binding.progressBar.visibility == View.VISIBLE) {
@@ -71,8 +70,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Dans MainActivity.kt, modifiez la méthode checkAuth() pour s'assurer que loadCurrentUserList() est appelée :
-
     private fun checkAuth() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
@@ -82,9 +79,15 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Charger la liste principale de l'utilisateur et attendre qu'elle soit prête
-        Log.d("MainActivity", "Utilisateur connecté, chargement de la liste...")
-        viewModel.loadCurrentUserList()
+        // Charger la liste sélectionnée ou la liste principale
+        val listId = intent.getStringExtra("LIST_ID")
+        if (listId != null) {
+            viewModel.loadSpecificList(listId)
+            // Mettre à jour le titre avec le nom de la liste
+            viewModel.loadListName(listId)
+        } else {
+            viewModel.loadCurrentUserList()
+        }
 
         // Vérifier si une liste a été chargée après un certain délai
         Handler(Looper.getMainLooper()).postDelayed({
@@ -107,6 +110,9 @@ class MainActivity : AppCompatActivity() {
                 // Ouvrir l'écran d'édition
                 val intent = Intent(this, AddItemActivity::class.java)
                 intent.putExtra("ITEM_ID", item.id)
+                viewModel.getListId()?.let { listId ->
+                    intent.putExtra("LIST_ID", listId)
+                }
                 startActivity(intent)
             }
         )
@@ -139,37 +145,14 @@ class MainActivity : AppCompatActivity() {
         itemTouchHelper.attachToRecyclerView(binding.recyclerViewItems)
     }
 
-// Remplacer la méthode setupObservers dans MainActivity.kt par cette version améliorée
-private fun testAddItem() {
-    val TAG = "MainActivity"
-    Log.d(TAG, "==== TEST AJOUT ARTICLE DIRECT ====")
-
-    // Créer un produit de test
-    val testItemId = UUID.randomUUID().toString()
-    val testItem = ShoppingItem(
-        id = testItemId,
-        name = "Produit Test " + System.currentTimeMillis(),
-        category = "Autres",
-        quantity = 1,
-        createdAt = Date()
-    )
-
-    Log.d(TAG, "Produit test créé: ID=$testItemId, Nom=${testItem.name}")
-
-    // Appeler directement la méthode addItem du ViewModel
-    viewModel.addItem(testItem)
-
-    Log.d(TAG, "Méthode addItem appelée")
-    Log.d(TAG, "==== FIN TEST AJOUT ARTICLE DIRECT ====")
-
-    // Feedback visuel
-    Snackbar.make(
-        binding.root,
-        "Test d'ajout lancé: ${testItem.name}",
-        Snackbar.LENGTH_LONG
-    ).show()
-}
     private fun setupObservers() {
+        // Observer le nom de la liste pour mettre à jour le titre
+        viewModel.listName.observe(this) { name ->
+            name?.let {
+                supportActionBar?.title = it
+            }
+        }
+
         // Utiliser un observer qui ne déclenche pas des appels dupliqués
         viewModel.shoppingItems.observe(this) { items ->
             Log.d("MainActivity", "Liste mise à jour: ${items.size} éléments")
@@ -199,7 +182,7 @@ private fun testAddItem() {
             }
         }
 
-        // Ajouter un observateur pour le statut réseau si nécessaire
+        // Ajouter un observateur pour le statut réseau
         viewModel.isNetworkAvailable.observe(this) { isOnline ->
             if (!isOnline) {
                 Snackbar.make(
@@ -211,30 +194,25 @@ private fun testAddItem() {
         }
     }
 
-// Dans MainActivity.kt, remplacez le code de setupListeners() par celui-ci :
-
     private fun setupListeners() {
-        // Suppression de l'ancien onLongClickListener s'il a été ajouté lors des tests
-        binding.fabAddItem.setOnLongClickListener(null)
-
-        // Réinitialisation du OnClickListener standard
         binding.fabAddItem.setOnClickListener {
             Log.d("MainActivity", "Bouton FAB cliqué - lancement de AddItemActivity")
-            startActivity(Intent(this, AddItemActivity::class.java))
+
+            // Passer l'ID de la liste actuelle
+            val intent = Intent(this, AddItemActivity::class.java)
+            viewModel.getListId()?.let { listId ->
+                intent.putExtra("LIST_ID", listId)
+            }
+            startActivity(intent)
         }
-
-        // S'assurer que le bouton est visible et activé
-        binding.fabAddItem.visibility = View.VISIBLE
-        binding.fabAddItem.isEnabled = true
-
-        // Ajouter une marge supplémentaire pour éviter qu'il soit caché
-        val params = binding.fabAddItem.layoutParams as CoordinatorLayout.LayoutParams
-        params.bottomMargin = resources.getDimensionPixelSize(R.dimen.fab_margin) // Assurez-vous que cette dimension existe
-        binding.fabAddItem.layoutParams = params
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
+
+        // Ajouter une option pour voir toutes les listes
+        menu?.add(Menu.NONE, R.id.action_view_lists, Menu.FIRST, R.string.view_all_lists)
+
         return true
     }
 
@@ -252,6 +230,10 @@ private fun testAddItem() {
             }
             R.id.action_sort_by_name -> {
                 viewModel.sortByName()
+                true
+            }
+            R.id.action_view_lists -> {
+                startActivity(Intent(this, ListsActivity::class.java))
                 true
             }
             else -> super.onOptionsItemSelected(item)

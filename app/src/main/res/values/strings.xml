@@ -1,42 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Courses Supermarché</string>
+    <!-- Nouvelles chaînes pour la gestion des listes partagées -->
 
-    <!-- Écran de connexion -->
-    <string name="login_subtitle">Connectez-vous pour gérer vos listes de courses</string>
-    <string name="welcome_message">Bienvenue %1$s</string>
-    <string name="error_google_signin">La connexion avec Google a échoué: %1$d</string>
-    <string name="error_authentication">Échec de l\'authentification: %1$s</string>
+    <!-- Écran des listes -->
+    <string name="my_lists">Mes listes de courses</string>
+    <string name="add_list">Ajouter une liste</string>
+    <string name="empty_lists_message">Vous n\'avez aucune liste de courses</string>
+    <string name="list_shared">Liste partagée</string>
+    <string name="more_options">Plus d\'options</string>
+    <string name="last_updated">Mis à jour %1$s</string>
 
-    <!-- Écran principal -->
-    <string name="empty_list_message">Votre liste de courses est vide</string>
-    <string name="add_item">Ajouter un article</string>
+    <plurals name="item_count">
+        <item quantity="one">%d article</item>
+        <item quantity="other">%d articles</item>
+    </plurals>
+
+    <!-- Création de liste -->
+    <string name="create_new_list">Créer une nouvelle liste</string>
+    <string name="list_name">Nom de la liste</string>
+    <string name="cancel">Annuler</string>
+    <string name="create">Créer</string>
+
+    <!-- Options de liste -->
+    <string name="share_list">Partager la liste</string>
+    <string name="reshare_list">Inviter quelqu\'un d\'autre</string>
+    <string name="leave_list">Quitter la liste</string>
+    <string name="delete_list">Supprimer la liste</string>
+
+    <!-- Confirmations -->
+    <string name="leave_list_title">Quitter la liste</string>
+    <string name="leave_list_message">Êtes-vous sûr de vouloir quitter la liste \"%1$s\" ? Vous n\'y aurez plus accès.</string>
+    <string name="leave">Quitter</string>
+
+    <string name="delete_list_title">Supprimer la liste</string>
+    <string name="delete_list_message">Êtes-vous sûr de vouloir supprimer la liste \"%1$s\" ? Cette action est irréversible.</string>
+    <string name="delete">Supprimer</string>
+
+    <!-- Menu de tri -->
+    <string name="action_sort_by_name">Trier par nom</string>
+
+    <!-- Messages d'invitation -->
+    <string name="invitation_created">Invitation créée avec succès</string>
+    <string name="invitation_accepted">Vous avez rejoint la liste</string>
+    <string name="invitation_expired">L\'invitation a expiré</string>
+    <string name="invitation_error">Erreur lors du traitement de l\'invitation</string>
+
+    <!-- Partage de liste -->
+    <string name="share_via_whatsapp">Partager via WhatsApp</string>
+    <string name="share_invitation_text">Je vous invite à rejoindre ma liste de courses \"%1$s\". Cliquez sur ce lien pour l\'ouvrir dans l\'application : %2$s</string>
+    <string name="field_required">Ce champ est obligatoire</string>
+    <string name="action_sort_by_update">Trier par date de mise à jour</string>
     <string name="item_deleted">%1$s supprimé</string>
     <string name="undo">Annuler</string>
-    <string name="no_network">Vous êtes hors ligne. Les modifications seront synchronisées quand la connexion sera rétablie.</string>
-    <string name="sync_complete">Synchronisation terminée</string>
-
-    <!-- Menu principal -->
-    <string name="action_logout">Déconnexion</string>
-    <string name="action_sort_by_category">Trier par catégorie</string>
-    <string name="action_sort_by_name">Trier par nom</string>
-    <string name="action_clear_completed">Effacer les articles cochés</string>
-    <string name="action_share_list">Partager la liste</string>
-
-    <!-- Écran d'ajout/édition -->
-    <string name="add_new_item">Ajouter un article</string>
-    <string name="edit_item">Modifier l\'article</string>
-    <string name="update_item">Mettre à jour</string>
-    <string name="item_name">Nom de l\'article</string>
-    <string name="category">Catégorie</string>
-    <string name="quantity">Quantité</string>
-    <string name="field_required">Ce champ est obligatoire</string>
-    <string name="item_added">Article ajouté avec succès</string>
-    <string name="item_updated">Article mis à jour avec succès</string>
-
-    <!-- Notifications -->
-    <string name="default_notification_channel_id">courses_supermarche_channel</string>
-    <string name="default_notification_channel_name">Notifications liste de courses</string>
-    <string name="notification_new_item">Nouvel article ajouté</string>
-    <string name="notification_item_updated">Article mis à jour</string>
+    <string name="view_all_lists">Voir toutes les listes</string>
 </resources>
